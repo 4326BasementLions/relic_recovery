@@ -107,7 +107,7 @@ public class Aut_Encoder extends LinearOpMode {
     //Init Sensors
     ColorSensor whiteLine;
     ColorSensor ballSensor;
-    GyroSensor gyroSensor;
+//    GyroSensor gyroSensor;
 
     //Init Motors
     DcMotor leftFront;
@@ -121,13 +121,41 @@ public class Aut_Encoder extends LinearOpMode {
     Servo rightArm;
     Servo leftArm;
 
+    //Vuforia
+    public static final String TAG = "Vuforia VuMark Sample";
+
+    OpenGLMatrix lastLocation = null;
+
+    /**
+     * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
+     * localization engine.
+     */
+    VuforiaLocalizer vuforia;
+
+//    int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//    VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+    VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
+    VuforiaTrackable relicTemplate = relicTrackables.get(0);
     @Override
     public void runOpMode() {
         /*
          * Initialize the drive system variables.
          * The init() method of the hardware class does all the work here
          */
-        //init(hardwareMap);
+
+        //init
+        leftFront = hardwareMap.dcMotor.get("leftFront");
+        rightFront = hardwareMap.dcMotor.get("rightFront");
+        leftBack = hardwareMap.dcMotor.get("leftBack");
+        rightBack = hardwareMap.dcMotor.get("rightBack");
+
+        whiteLine = hardwareMap.colorSensor.get("whiteLine");
+        ballSensor = hardwareMap.colorSensor.get("ballSensor");
+        armServo = hardwareMap.servo.get("armServo");
+        rightArm = hardwareMap.servo.get("rightArm");
+        leftArm = hardwareMap.servo.get("leftArm");
+
+
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Resetting Encoders");    //
         telemetry.update();
@@ -164,9 +192,36 @@ public class Aut_Encoder extends LinearOpMode {
         telemetry.addData("Blue ", ballSensor.blue());
 
         telemetry.update();
+        //Vuforia - starting the camera
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+        //License Key, I already set it up I think
+        parameters.vuforiaLicenseKey = "AZD9V+f/////AAAAGZDj5Sa0JkeSohNtCSdf0T94R9bz9UlzQyuCIZuJ2d1ehAEqmbPYzprSq4hmd/9XUZYT088pUIzwl79q9h2ljFjUFD5p0RHKBx+ggMJ+qgCelvbeNf7Rd771vlduzibSBN6np49m6Z31Eyk0dYFZJbpdmw4P7mQ8LaeR6UOLgmiythqcCZga9VoEHPA2e8Z9/7At1SZVPiOBkVlEKz5AGhPhL5/A/R3sb30NSaiq5yquyJ+sOWvNQ5ovdVND6OrAQrc2DdQcCDyD8JQLOiVZYCPoNohKfuZ9N2jnZRSueEH4XV6i2DOqWxfJ5vmNf6jBcrOWLROO8KEoPa2Fvibxj7lPMp4JM/nMXK7TwEopU91v";
+        //Which camera we choose - I used back right now because I think the range is better, but front could work
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+        //Define Pictographs as VuMarks which the Vuforia can track
+//        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
+//        VuforiaTrackable relicTemplate = relicTrackables.get(0);
+        relicTemplate.setName("relicVuMarkTemplate");
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+        while (opModeIsActive()) {
+            relicTrackables.activate();
+            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
+            if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+
+                telemetry.addData("VuMark", "%s visible", vuMark); //variable vuMark --> "center", "left", "right"
+
+            }
+            else {
+                telemetry.addData("VuMark", "not visible");
+            }
+
+            telemetry.update();
+        }
         // Start of Autonomous!!!!                   *****************************************************************************************************************
         allianceSide("red");
         pushBall();
@@ -323,37 +378,72 @@ public class Aut_Encoder extends LinearOpMode {
     }
 
     public void senseGlyph() {
-        rotateRight(numMult * 50,.8);
-        //...
-        
-//         pictoRow = ...
+        rotateRight(numMult * 50,1);
+        relicTrackables.activate();
+        RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //camera
+        if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+            if(vuMark.equals("left")) {
+                pictoRow = 1; //just becuase I can
+            }
+            if(vuMark.equals("center")) {
+                pictoRow = 2; //just becuase I can
+            }
+            if(vuMark.equals("right")) {
+                pictoRow = 3; //just becuase I can
+            }
+        }
     }
     
     int pictoRow = 0; //for knowing which row the pictograph shows for the glyph
     /*
-    1 = closest
+    1 = left
     2 = middle
-    3 = furthest
+    3 = right
     */
     public void setGlyph() {
-        
-        if(pictoRow == 1) {
+        double timeToGlyph = 0;
+        if(isBlue == true) { //blue
+            rotateRight(50,1);
+            if(pictoRow == 1) {
+                timeToGlyph = -1.5;
+            }
+            else if(pictoRow == 2) {
+                timeToGlyph = -2;
+            }
+            else if(pictoRow == 3) {
+                timeToGlyph = -2.5;
+            }
         }
-        else if(pictoRow == 2) {
-        }
-        else if(pictoRow == 3) {
+        else if(isBlue == false) { //red
+            rotateLeft(50, 1);
+            if(pictoRow == 1) {
+                timeToGlyph = 2.5;
+            }
+            else if(pictoRow == 2) {
+                timeToGlyph = 2;
+            }
+            else if(pictoRow == 3) {
+                timeToGlyph = 1.5;
+            }
         }
         else {
            telemetry.addData("getGlyph", "Error in getting glyph: " + pictoRow);
            telemetry.update();
         }
+
+        driveForward(45, timeToGlyph);
+        rotateRight(numMult * 50, 1);
+        openArm(1); //open
+        driveBackward(40, .5); //deposites and pushes in block
+        openArm(-1); //close
+        driveForward(50, .8);
     }
 
     //Extra Methods
     public void driveForward(int x, double time){
         encoderDrive(DRIVE_SPEED,  x,  x, x, x, time);  // S1: Forward 47 Inches with 5 Sec timeout
     }
-    public void driveBackwards(int x, double time){
+    public void driveBackward(int x, double time){
         encoderDrive(DRIVE_SPEED,  -x,  -x, -x, -x, time);  // S1: Forward 47 Inches with 5 Sec timeout
     }
     public void strafeLeft(int x, double time){
@@ -367,6 +457,10 @@ public class Aut_Encoder extends LinearOpMode {
     }
     public void rotateLeft(int x, double time){
         encoderDrive(TURN_SPEED,  -x,  x, -x, x, time);  // S1: Forward 47 Inches with 5 Sec timeout
+    }
+    public void openArm(int pos) {
+        rightArm.setPosition(pos);
+        leftArm.setPosition(-pos);
     }
 
     public void wait(int time){
