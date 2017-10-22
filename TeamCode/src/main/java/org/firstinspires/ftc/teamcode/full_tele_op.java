@@ -36,6 +36,7 @@ public class full_tele_op extends OpMode {
     Servo leftArm;
 
     double changeFactor = .9;
+	double turnChangeFactor = .9;
 
     @Override
     public void init()
@@ -89,17 +90,19 @@ public class full_tele_op extends OpMode {
 
         // holonomic formulas
 
-        float FrontLeft = (float)((-gamepad1LeftY - gamepad1LeftX - gamepad1RightX) * changeFactor); // 3 4ths of the power
-        float FrontRight = (float)((gamepad1LeftY - gamepad1LeftX - gamepad1RightX) * changeFactor);
-        float BackRight = (float)((gamepad1LeftY + gamepad1LeftX - gamepad1RightX) * changeFactor);
-        float BackLeft = (float)((-gamepad1LeftY + gamepad1LeftX - gamepad1RightX) * changeFactor);
+        float FrontLeft = (float)((-gamepad1LeftY - gamepad1LeftX - gamepad1RightX*turnChangeFactor) * changeFactor); // 3 4ths of the power
+        float FrontRight = (float)((gamepad1LeftY - gamepad1LeftX - gamepad1RightX*turnChangeFactor) * changeFactor);
+        float BackRight = (float)((gamepad1LeftY + gamepad1LeftX - gamepad1RightX*turnChangeFactor) * changeFactor);
+        float BackLeft = (float)((-gamepad1LeftY + gamepad1LeftX - gamepad1RightX*turnChangeFactor) * changeFactor);
 
         if(gamepad1.left_stick_button || gamepad1.right_stick_button) { //scaling power of motors
             if(changeFactor == .9) {
                 changeFactor = .5;
+		turnChangeFactor = .5;
             }
             else {
                 changeFactor = .9;
+		turnChangeFactor = .9;
             }
         }
 
