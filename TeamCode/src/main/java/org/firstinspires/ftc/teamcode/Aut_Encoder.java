@@ -135,8 +135,7 @@ public class aut_encoder extends LinearOpMode {
 
     //    int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 //    VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-    VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
-    VuforiaTrackable relicTemplate = relicTrackables.get(0);
+
     @Override
     public void runOpMode() {
         /*
@@ -153,8 +152,8 @@ public class aut_encoder extends LinearOpMode {
 //        whiteLine = hardwareMap.colorSensor.get("whiteLine");
         ballSensor = hardwareMap.colorSensor.get("ballSensor");
         armServo = hardwareMap.servo.get("armServo");
-        rightArm = hardwareMap.servo.get("rightArm");
-        leftArm = hardwareMap.servo.get("leftArm");
+        rightArm = hardwareMap.servo.get("right arm");
+        leftArm = hardwareMap.servo.get("left arm");
 
 
         // Send telemetry message to signify robot waiting;
@@ -175,8 +174,6 @@ public class aut_encoder extends LinearOpMode {
                 leftBack.getCurrentPosition(),
                 rightBack.getCurrentPosition()
         );
-        rightArm = hardwareMap.servo.get("right arm");
-        leftArm = hardwareMap.servo.get("left arm");
 
 //        whiteLine.enableLed(true); // mode is for close-range testing on objects that do not shine light
 //        telemetry.addData("LED", true ? "On" : "Off");
@@ -204,6 +201,8 @@ public class aut_encoder extends LinearOpMode {
         //Define Pictographs as VuMarks which the Vuforia can track
 //        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
 //        VuforiaTrackable relicTemplate = relicTrackables.get(0);
+        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
+        VuforiaTrackable relicTemplate = relicTrackables.get(0);
         relicTemplate.setName("relicVuMarkTemplate");
 
         // Wait for the game to start (driver presses PLAY)
@@ -225,8 +224,21 @@ public class aut_encoder extends LinearOpMode {
         }
         // Start of Autonomous!!!!                   *****************************************************************************************************************
         allianceSide("red");
+        openArm(-1);
         pushBall();
-        senseGlyph();
+        relicTrackables.activate(); //sense()
+        RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //camera
+        if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+            if(vuMark.equals("left")) {
+                pictoRow = 1; //just becuase I can
+            }
+            if(vuMark.equals("center")) {
+                pictoRow = 2; //just becuase I can
+            }
+            if(vuMark.equals("right")) {
+                pictoRow = 3; //just becuase I can
+            }
+        }
         setGlyph();
 
         telemetry.addData("Path", "Complete");
@@ -381,19 +393,7 @@ public class aut_encoder extends LinearOpMode {
 
     public void senseGlyph() {
 //        rotateRight(numMult * autDriveSpd,1);  //maybe be unnecessary depending on phone placement
-        relicTrackables.activate(); //sense()
-        RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //camera
-        if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
-            if(vuMark.equals("left")) {
-                pictoRow = 1; //just becuase I can
-            }
-            if(vuMark.equals("center")) {
-                pictoRow = 2; //just becuase I can
-            }
-            if(vuMark.equals("right")) {
-                pictoRow = 3; //just becuase I can
-            }
-        }
+
     }
 
     int pictoRow = 0; //for knowing which row the pictograph shows for the glyph
