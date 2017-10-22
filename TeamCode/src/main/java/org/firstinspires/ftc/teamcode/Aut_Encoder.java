@@ -142,7 +142,6 @@ public class aut_encoder extends LinearOpMode {
          * Initialize the drive system variables.
          * The init() method of the hardware class does all the work here
          */
-
         //init
         leftFront = hardwareMap.dcMotor.get("left front");
         rightFront = hardwareMap.dcMotor.get("right front");
@@ -152,10 +151,9 @@ public class aut_encoder extends LinearOpMode {
 //        whiteLine = hardwareMap.colorSensor.get("whiteLine");
         ballSensor = hardwareMap.colorSensor.get("ballSensor");
         armServo = hardwareMap.servo.get("armServo");
-        rightArm = hardwareMap.servo.get("right arm");
         leftArm = hardwareMap.servo.get("left arm");
-
-
+        rightArm = hardwareMap.servo.get("right arm");
+        
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Status", "Resetting Encoders");    //
         telemetry.update();
@@ -209,41 +207,232 @@ public class aut_encoder extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            relicTrackables.activate();
-            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-            if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+            // Start of Autonomous!!!!                   *****************************************************************************************************************
+            sense();
+            senseColor();
+//            allianceSide("red");
+//            openArm(-1);
+//            relicTrackables.activate(); //sense()
+//            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //camera
+//            if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+//
+//                telemetry.addData("VuMark", "%s visible", vuMark); //variable vuMark --> "center", "left", "right"
+//
+//            }
+//            else {
+//                telemetry.addData("VuMark", "not visible");
+//            }
+//
+//            telemetry.update();
+//
+//            if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+//                if(vuMark.equals("left")) {
+//                    pictoRow = 1; //just becuase I can
+//                }
+//                if(vuMark.equals("center")) {
+//                    pictoRow = 2; //just becuase I can
+//                }
+//                if(vuMark.equals("right")) {
+//                    pictoRow = 3; //just becuase I can
+//                }
+//            }
+//            pushBall();
+////            setGlyph();
 
-                telemetry.addData("VuMark", "%s visible", vuMark); //variable vuMark --> "center", "left", "right"
-
-            }
-            else {
-                telemetry.addData("VuMark", "not visible");
-            }
-
+            telemetry.addData("Path", "Complete");
             telemetry.update();
         }
-        // Start of Autonomous!!!!                   *****************************************************************************************************************
-        allianceSide("red");
-        openArm(-1);
-        pushBall();
-        relicTrackables.activate(); //sense()
-        RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //camera
-        if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
-            if(vuMark.equals("left")) {
-                pictoRow = 1; //just becuase I can
+    }
+
+    int autDriveSpd = 40;
+    //Alliance Methods
+    boolean isBlue = false;
+    int numMult = 1;
+    public void allianceSide(String redBlueSide) {
+        if(redBlueSide.equals("red")) {
+            numMult = 1;
+            isBlue = false;
+        }
+        else if(redBlueSide.equals("blue")) {
+            numMult = -1;
+            isBlue = true;
+        }
+        else {
+            telemetry.addData("Error", "alliance side? " + redBlueSide);
+            telemetry.update();
+        }
+    }
+
+    
+    //Driving Methods
+    public void pushBall() {
+//        whiteLine.enableLed(true);
+        ballSensor.enableLed(true);
+        do {
+            armServo.setPosition(1);
+            wait(1);
+//        sense();
+            telemetry.addData("LED", true ? "On" : "Off");
+            telemetry.addData("Clear", ballSensor.alpha());
+            telemetry.addData("Red ", ballSensor.red());
+            telemetry.addData("Green", ballSensor.green());
+            telemetry.addData("Blue ", ballSensor.blue());
+            if(ballSensor.red() < 200 || ballSensor.blue() < 200) {
+                armServo.setPosition(0);
             }
-            if(vuMark.equals("center")) {
-                pictoRow = 2; //just becuase I can
+        }while(ballSensor.red() >= 200 || ballSensor.blue() >= 200);
+
+        //assuming that the servo is on the right side of the robot
+//        sense();
+        double timeToPicto = 0;
+        if(isBlue == true) { //senses backwards
+            if(ballSensor.blue()-50 > ballSensor.red()) { //if is blue
+                driveForward(-autDriveSpd,1);
+                timeToPicto = 1.5;
             }
-            if(vuMark.equals("right")) {
-                pictoRow = 3; //just becuase I can
+            else if(ballSensor.red()-50 > ballSensor.blue()) {
+                driveForward(autDriveSpd,1);
+                timeToPicto = .5;
+            }
+            else {
+                telemetry.addData("pushBall", "Error in push ball method (blue)");
+                telemetry.update();
             }
         }
-        setGlyph();
-
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
+        else {
+            if(ballSensor.red()-100 > ballSensor.blue()) { //if is red
+                driveForward(-autDriveSpd,1);
+                timeToPicto = 1.5;
+            }
+            else if(ballSensor.blue()-100 > ballSensor.red()) {
+                driveForward(autDriveSpd,1);
+                timeToPicto = .5;
+            }
+            else {
+                telemetry.addData("pushBall", "Error in push ball method (red)");
+                telemetry.update();
+            }
+        }
+        armServo.setPosition(0);
+        wait(1);
+//        whiteLine.enableLed(false);
+//        ballSensor.enableLed(false);
+        wait(1);
+//        driveForward(autDriveSpd, timeToPicto);  //drive to the pictograph
     }
+
+    int pictoRow = 0; //for knowing which row the pictograph shows for the glyph
+    /*
+    1 = left
+    2 = middle
+    3 = right
+    */
+    public void setGlyph() {
+        double timeToGlyph = 0;
+        if(isBlue == true) { //blue
+            rotateRight(autDriveSpd,1);
+            if(pictoRow == 1) {
+                timeToGlyph = -1;
+            }
+            else if(pictoRow == 2) {
+                timeToGlyph = -1.5;
+            }
+            else if(pictoRow == 3) {
+                timeToGlyph = -2;
+            }
+            timeToGlyph *= numMult;
+        }
+        else if(isBlue == false) { //red
+            rotateLeft(autDriveSpd, 1);
+            if(pictoRow == 1) {
+                timeToGlyph = 2;
+            }
+            else if(pictoRow == 2) {
+                timeToGlyph = 1.5;
+            }
+            else if(pictoRow == 3) {
+                timeToGlyph = 1;
+            }
+//            timeToGlyph *= numMult;
+        }
+        else {
+            telemetry.addData("getGlyph", "Error in getting glyph: " + pictoRow);
+            telemetry.update();
+        }
+
+        driveForward((int)(autDriveSpd * .85), timeToGlyph); //moving
+        rotateRight(numMult * autDriveSpd, 1);
+        openArm(1); //open
+        driveBackward((int)(autDriveSpd * .8), .5); //deposites and pushes in block
+        openArm(-1); //close
+        driveForward(autDriveSpd, .8);
+    }
+
+    
+    //Color Testing Methods
+    public void senseColor() {
+        telemetry.addData("LED", true ? "On" : "Off");
+        telemetry.addData("Clear", ballSensor.alpha());
+        telemetry.addData("Red ", ballSensor.red());
+        telemetry.addData("Green", ballSensor.green());
+        telemetry.addData("Blue ", ballSensor.blue());
+    }
+
+    public void sense() {
+        boolean bLedOn = true;
+
+        ballSensor.enableLed(bLedOn);
+
+        float hsvValues[] = {0F,0F,0F};
+
+        final float values[] = hsvValues;
+
+        final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(com.qualcomm.ftcrobotcontroller.R.id.RelativeLayout);
+
+        Color.RGBToHSV(ballSensor.red() * 8, ballSensor.green() * 8, ballSensor.blue() * 8, hsvValues);
+
+        Color.RGBToHSV(ballSensor.red(), ballSensor.green(), ballSensor.blue(), hsvValues);
+
+
+        telemetry.addData("Text:", "RGB Colors: " + ballSensor.red() + ", " + ballSensor.green() + ", " + ballSensor.blue());
+        telemetry.addData("Colors (R, B, G)", hsvValues[0]);
+    }
+    
+    
+    //Extra Methods
+    public void driveForward(int x, double time){
+        encoderDrive(DRIVE_SPEED,  x,  x, x, x, time);  // S1: Forward 47 Inches with 5 Sec timeout
+    }
+    public void driveBackward(int x, double time){
+        encoderDrive(DRIVE_SPEED,  -x,  -x, -x, -x, time);  // S1: Forward 47 Inches with 5 Sec timeout
+    }
+    public void strafeLeft(int x, double time){
+        encoderDrive(STRAFE_SPEED,  -x,  x, x, -x, time);  // S1: Forward 47 Inches with 5 Sec timeout
+    }
+    public void strafeRight(int x, double time){
+        encoderDrive(STRAFE_SPEED,  x,  -x, -x, x, time);  // S1: Forward 47 Inches with 5 Sec timeout
+    }
+    public void rotateRight(int x, double time){
+        encoderDrive(TURN_SPEED,  x,  -x, x, -x, time);  // S1: Forward 47 Inches with 5 Sec timeout
+    }
+    public void rotateLeft(int x, double time){
+        encoderDrive(TURN_SPEED,  -x,  x, -x, x, time);  // S1: Forward 47 Inches with 5 Sec timeout
+    }
+    public void openArm(int pos) {
+        rightArm.setPosition(pos);
+        leftArm.setPosition(-pos);
+    }
+
+    public void wait(int time){
+        try{
+            Thread.sleep(time * 1000); //seconds
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    //Base Driving Methods
     /*
      *  Method to perfmorm a relative move, based on encoder counts.
      *  Encoders are not reset as the move is based on the current position.
@@ -318,160 +507,6 @@ public class aut_encoder extends LinearOpMode {
             leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             //  sleep(250);   // optional pause after each move
-        }
-    }
-
-    int autDriveSpd = 50;
-    //Alliance Side Method!
-    boolean isBlue = false;
-    int numMult = 1;
-    public void allianceSide(String redBlueSide) {
-        if(redBlueSide.equals("red")) {
-            numMult = 1;
-            isBlue = false;
-        }
-        else if(redBlueSide.equals("blue")) {
-            numMult = -1;
-            isBlue = true;
-        }
-        else {
-            telemetry.addData("Error", "alliance side? " + redBlueSide);
-            telemetry.update();
-        }
-    }
-
-    //Driving Methods
-    public void pushBall() {
-//        whiteLine.enableLed(true);
-        ballSensor.enableLed(true);
-        do {
-            armServo.setPosition(1);
-            wait(1);
-//        sense();
-            if(ballSensor.red() < 200 || ballSensor.blue() < 200) {
-                armServo.setPosition(0);
-            }
-        }while(ballSensor.red() >= 200 || ballSensor.blue() >= 200);
-
-        //assuming that the servo is on the right side of the robot
-//        sense();
-        double timeToPicto = 0;
-        if(isBlue == true) { //senses backwards
-            if(ballSensor.blue()-50 > ballSensor.red()) { //if is blue
-                driveForward(autDriveSpd,1);
-                timeToPicto = .5;
-            }
-            else if(ballSensor.red()-50 > ballSensor.blue()) {
-                driveForward(-autDriveSpd,1);
-                timeToPicto = 1.5;
-            }
-            else {
-                telemetry.addData("pushBall", "Error in push ball method (blue)");
-                telemetry.update();
-            }
-        }
-        else {
-            if(ballSensor.red()-50 > ballSensor.blue()) { //if is red
-                driveForward(autDriveSpd,1);
-                timeToPicto = .5;
-            }
-            else if(ballSensor.blue()-50 > ballSensor.red()) {
-                driveForward(-autDriveSpd,1);
-                timeToPicto = 1.5;
-            }
-            else {
-                telemetry.addData("pushBall", "Error in push ball method (red)");
-                telemetry.update();
-            }
-        }
-        armServo.setPosition(0);
-//        whiteLine.enableLed(false);
-        ballSensor.enableLed(false);
-        wait(1);
-        driveForward(60, timeToPicto);
-    }
-
-    public void senseGlyph() {
-//        rotateRight(numMult * autDriveSpd,1);  //maybe be unnecessary depending on phone placement
-
-    }
-
-    int pictoRow = 0; //for knowing which row the pictograph shows for the glyph
-    /*
-    1 = left
-    2 = middle
-    3 = right
-    */
-    public void setGlyph() {
-        double timeToGlyph = 0;
-        if(isBlue == true) { //blue
-            rotateRight(autDriveSpd,1);
-            if(pictoRow == 1) {
-                timeToGlyph = -1;
-            }
-            else if(pictoRow == 2) {
-                timeToGlyph = -1.5;
-            }
-            else if(pictoRow == 3) {
-                timeToGlyph = -2;
-            }
-            timeToGlyph *= numMult;
-        }
-        else if(isBlue == false) { //red
-            rotateLeft(autDriveSpd, 1);
-            if(pictoRow == 1) {
-                timeToGlyph = 2;
-            }
-            else if(pictoRow == 2) {
-                timeToGlyph = 1.5;
-            }
-            else if(pictoRow == 3) {
-                timeToGlyph = 1;
-            }
-//            timeToGlyph *= numMult;
-        }
-        else {
-            telemetry.addData("getGlyph", "Error in getting glyph: " + pictoRow);
-            telemetry.update();
-        }
-
-        driveForward((int)(autDriveSpd * .85), timeToGlyph);
-        rotateRight(numMult * autDriveSpd, 1);
-        openArm(1); //open
-        driveBackward((int)(autDriveSpd * .8), .5); //deposites and pushes in block
-        openArm(-1); //close
-        driveForward(autDriveSpd, .8);
-    }
-
-    //Extra Methods
-    public void driveForward(int x, double time){
-        encoderDrive(DRIVE_SPEED,  x,  x, x, x, time);  // S1: Forward 47 Inches with 5 Sec timeout
-    }
-    public void driveBackward(int x, double time){
-        encoderDrive(DRIVE_SPEED,  -x,  -x, -x, -x, time);  // S1: Forward 47 Inches with 5 Sec timeout
-    }
-    public void strafeLeft(int x, double time){
-        encoderDrive(STRAFE_SPEED,  -x,  x, x, -x, time);  // S1: Forward 47 Inches with 5 Sec timeout
-    }
-    public void strafeRight(int x, double time){
-        encoderDrive(STRAFE_SPEED,  x,  -x, -x, x, time);  // S1: Forward 47 Inches with 5 Sec timeout
-    }
-    public void rotateRight(int x, double time){
-        encoderDrive(TURN_SPEED,  x,  -x, x, -x, time);  // S1: Forward 47 Inches with 5 Sec timeout
-    }
-    public void rotateLeft(int x, double time){
-        encoderDrive(TURN_SPEED,  -x,  x, -x, x, time);  // S1: Forward 47 Inches with 5 Sec timeout
-    }
-    public void openArm(int pos) {
-        rightArm.setPosition(pos);
-        leftArm.setPosition(-pos);
-    }
-
-    public void wait(int time){
-        try{
-            Thread.sleep(time * 1000); //seconds
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 }
