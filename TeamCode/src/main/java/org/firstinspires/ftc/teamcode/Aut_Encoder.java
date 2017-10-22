@@ -29,8 +29,8 @@
 
 package org.firstinspires.ftc.teamcode;
 
-//import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-//import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -46,6 +46,8 @@ import com.qualcomm.robotcore.util.Range;
 import android.app.Activity;
 import android.view.View;
 
+//Vuforia Stuff
+
 import org.firstinspires.ftc.robotcontroller.external.samples.ConceptVuforiaNavigation;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -60,7 +62,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
 /**
  * This file illustrates the concept of driving a path based on encoder counts.
  * It uses the common Pushbot hardware class to define the drive on the robot.
@@ -90,7 +91,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 @Autonomous(name="Stew's Autonomous", group="Autonomous")
 
-public class Aut_Encoder extends LinearOpMode {
+public class aut_encoder extends LinearOpMode {
 
     /* Declare OpMode members. */
     private ElapsedTime     runtime = new ElapsedTime();
@@ -105,7 +106,7 @@ public class Aut_Encoder extends LinearOpMode {
     static final double     STRAFE_SPEED              = 0.5;
 
     //Init Sensors
-    ColorSensor whiteLine;
+//    ColorSensor whiteLine;
     ColorSensor ballSensor;
 //    GyroSensor gyroSensor;
 
@@ -117,7 +118,7 @@ public class Aut_Encoder extends LinearOpMode {
 
     //Init Servos
     Servo armServo;
-    
+
     Servo rightArm;
     Servo leftArm;
 
@@ -132,7 +133,7 @@ public class Aut_Encoder extends LinearOpMode {
      */
     VuforiaLocalizer vuforia;
 
-//    int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+    //    int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 //    VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
     VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
     VuforiaTrackable relicTemplate = relicTrackables.get(0);
@@ -144,12 +145,12 @@ public class Aut_Encoder extends LinearOpMode {
          */
 
         //init
-        leftFront = hardwareMap.dcMotor.get("leftFront");
-        rightFront = hardwareMap.dcMotor.get("rightFront");
-        leftBack = hardwareMap.dcMotor.get("leftBack");
-        rightBack = hardwareMap.dcMotor.get("rightBack");
+        leftFront = hardwareMap.dcMotor.get("left front");
+        rightFront = hardwareMap.dcMotor.get("right front");
+        leftBack = hardwareMap.dcMotor.get("left back");
+        rightBack = hardwareMap.dcMotor.get("right back");
 
-        whiteLine = hardwareMap.colorSensor.get("whiteLine");
+//        whiteLine = hardwareMap.colorSensor.get("whiteLine");
         ballSensor = hardwareMap.colorSensor.get("ballSensor");
         armServo = hardwareMap.servo.get("armServo");
         rightArm = hardwareMap.servo.get("rightArm");
@@ -177,12 +178,12 @@ public class Aut_Encoder extends LinearOpMode {
         rightArm = hardwareMap.servo.get("right arm");
         leftArm = hardwareMap.servo.get("left arm");
 
-        whiteLine.enableLed(true); // mode is for close-range testing on objects that do not shine light
-        telemetry.addData("LED", true ? "On" : "Off");
-        telemetry.addData("Clear", whiteLine.alpha());
-        telemetry.addData("Red ", whiteLine.red());
-        telemetry.addData("Green", whiteLine.green());
-        telemetry.addData("Blue ", whiteLine.blue());
+//        whiteLine.enableLed(true); // mode is for close-range testing on objects that do not shine light
+//        telemetry.addData("LED", true ? "On" : "Off");
+//        telemetry.addData("Clear", whiteLine.alpha());
+//        telemetry.addData("Red ", whiteLine.red());
+//        telemetry.addData("Green", whiteLine.green());
+//        telemetry.addData("Blue ", whiteLine.blue());
 
         ballSensor.enableLed(true); // mode is for close-range testing on objects that do not shine light
         telemetry.addData("LED", true ? "On" : "Off");
@@ -253,7 +254,7 @@ public class Aut_Encoder extends LinearOpMode {
             final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(com.qualcomm.ftcrobotcontroller.R.id.RelativeLayout);// this may be unnecessary
             //colorSensor.enableLed(false);
             Color.RGBToHSV(ballSensor.red() * 8, ballSensor.green() * 8, ballSensor.blue() * 8, hsvValues);//turns values into simpler numbers
-            Color.RGBToHSV(whiteLine.red() * 8, whiteLine.green() * 8, whiteLine.blue() * 8, hsvValues);//turns values into simpler numbers
+//            Color.RGBToHSV(whiteLine.red() * 8, whiteLine.green() * 8, whiteLine.blue() * 8, hsvValues);//turns values into simpler numbers
             //Color.RGBToHSV(colorSensor.red(), colorSensor.green(), colorSensor.blue(), hsvValues);//stores values
 
             // Determine new target position, and pass to motor controller
@@ -308,6 +309,7 @@ public class Aut_Encoder extends LinearOpMode {
         }
     }
 
+    int autDriveSpd = 50;
     //Alliance Side Method!
     boolean isBlue = false;
     int numMult = 1;
@@ -328,27 +330,27 @@ public class Aut_Encoder extends LinearOpMode {
 
     //Driving Methods
     public void pushBall() {
-        whiteLine.enableLed(true);
+//        whiteLine.enableLed(true);
         ballSensor.enableLed(true);
         do {
             armServo.setPosition(1);
             wait(1);
 //        sense();
-            if(whiteLine.alpha() < 200) {
+            if(ballSensor.red() < 200 || ballSensor.blue() < 200) {
                 armServo.setPosition(0);
             }
-        }while(whiteLine.alpha() >= 200);
+        }while(ballSensor.red() >= 200 || ballSensor.blue() >= 200);
 
         //assuming that the servo is on the right side of the robot
 //        sense();
         double timeToPicto = 0;
         if(isBlue == true) { //senses backwards
             if(ballSensor.blue()-50 > ballSensor.red()) { //if is blue
-                driveForward(50,1);
+                driveForward(autDriveSpd,1);
                 timeToPicto = .5;
             }
             else if(ballSensor.red()-50 > ballSensor.blue()) {
-                driveForward(-50,1);
+                driveForward(-autDriveSpd,1);
                 timeToPicto = 1.5;
             }
             else {
@@ -358,11 +360,11 @@ public class Aut_Encoder extends LinearOpMode {
         }
         else {
             if(ballSensor.red()-50 > ballSensor.blue()) { //if is red
-                driveForward(50,1);
+                driveForward(autDriveSpd,1);
                 timeToPicto = .5;
             }
             else if(ballSensor.blue()-50 > ballSensor.red()) {
-                driveForward(-50,1);
+                driveForward(-autDriveSpd,1);
                 timeToPicto = 1.5;
             }
             else {
@@ -371,15 +373,15 @@ public class Aut_Encoder extends LinearOpMode {
             }
         }
         armServo.setPosition(0);
-        whiteLine.enableLed(false);
+//        whiteLine.enableLed(false);
         ballSensor.enableLed(false);
         wait(1);
         driveForward(60, timeToPicto);
     }
 
     public void senseGlyph() {
-        rotateRight(numMult * 50,1);
-        relicTrackables.activate();
+//        rotateRight(numMult * autDriveSpd,1);  //maybe be unnecessary depending on phone placement
+        relicTrackables.activate(); //sense()
         RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate); //camera
         if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
             if(vuMark.equals("left")) {
@@ -393,7 +395,7 @@ public class Aut_Encoder extends LinearOpMode {
             }
         }
     }
-    
+
     int pictoRow = 0; //for knowing which row the pictograph shows for the glyph
     /*
     1 = left
@@ -403,40 +405,42 @@ public class Aut_Encoder extends LinearOpMode {
     public void setGlyph() {
         double timeToGlyph = 0;
         if(isBlue == true) { //blue
-            rotateRight(50,1);
+            rotateRight(autDriveSpd,1);
             if(pictoRow == 1) {
+                timeToGlyph = -1;
+            }
+            else if(pictoRow == 2) {
                 timeToGlyph = -1.5;
             }
-            else if(pictoRow == 2) {
+            else if(pictoRow == 3) {
                 timeToGlyph = -2;
             }
-            else if(pictoRow == 3) {
-                timeToGlyph = -2.5;
-            }
+            timeToGlyph *= numMult;
         }
         else if(isBlue == false) { //red
-            rotateLeft(50, 1);
+            rotateLeft(autDriveSpd, 1);
             if(pictoRow == 1) {
-                timeToGlyph = 2.5;
-            }
-            else if(pictoRow == 2) {
                 timeToGlyph = 2;
             }
-            else if(pictoRow == 3) {
+            else if(pictoRow == 2) {
                 timeToGlyph = 1.5;
             }
+            else if(pictoRow == 3) {
+                timeToGlyph = 1;
+            }
+//            timeToGlyph *= numMult;
         }
         else {
-           telemetry.addData("getGlyph", "Error in getting glyph: " + pictoRow);
-           telemetry.update();
+            telemetry.addData("getGlyph", "Error in getting glyph: " + pictoRow);
+            telemetry.update();
         }
 
-        driveForward(45, timeToGlyph);
-        rotateRight(numMult * 50, 1);
+        driveForward((int)(autDriveSpd * .85), timeToGlyph);
+        rotateRight(numMult * autDriveSpd, 1);
         openArm(1); //open
-        driveBackward(40, .5); //deposites and pushes in block
+        driveBackward((int)(autDriveSpd * .8), .5); //deposites and pushes in block
         openArm(-1); //close
-        driveForward(50, .8);
+        driveForward(autDriveSpd, .8);
     }
 
     //Extra Methods
