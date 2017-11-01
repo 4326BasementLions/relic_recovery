@@ -115,10 +115,12 @@ public class justIMU extends LinearOpMode{
         waitForStart();
 
         do{
+            sleep(100);
             turnLeft(1,3);
             sleep(100);
-            turnRight(1,3);
-            sleep(100);
+            if(angles.firstAngle>=85||angles.firstAngle<=95){
+                turnRight(1,3);
+            }
         }
         while(angles.firstAngle<85||angles.firstAngle>95);
 
@@ -251,7 +253,7 @@ public class justIMU extends LinearOpMode{
 
             sleep(250);   // optional pause after each move
 
-            while(angles.thirdAngle!=optimalAngle){
+            while(Math.abs(angles.thirdAngle) != optimalAngle){
                 turnLeft(1,1);
             }
         }
