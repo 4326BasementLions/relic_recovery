@@ -63,8 +63,8 @@ public class full_tele_op extends OpMode {
 
         lift = hardwareMap.dcMotor.get("lift");
 
-        rightArm = hardwareMap.servo.get("right arm");
-        leftArm = hardwareMap.servo.get("left arm");
+        rightArm = hardwareMap.servo.get("rightArm");
+        leftArm = hardwareMap.servo.get("leftArm");
 
     }
 
