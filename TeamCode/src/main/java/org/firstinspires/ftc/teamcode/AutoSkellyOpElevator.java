@@ -204,6 +204,11 @@ public class AutoSkellyOpElevator extends LinearOpMode {
 
                     leftArm.setPosition(0);
                     rightArm.setPosition(1);
+                    
+                    sleep(100);
+                    
+                    leftArm.setPosition(1);
+                    rightArm.setPosition(0);
 
                     driveBackward(2,1);
 
