@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 import java.lang.*;
 
+@TeleOp(name = "Hybrid Tele Op", group = "Tele Op")
 public class HybridTeleOp extends OpMode
 {
 
