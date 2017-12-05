@@ -43,8 +43,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 /**
  * Created by Libby on 12/3/17.
  */
-@Autonomous(name="SkellyOpElevator", group="Autonomous")
-public class AutoSkellyOpElevator extends LinearOpMode {
+@Autonomous(name="Elevatory Auto", group="Autonomous")
+public class ElevatorAuto extends LinearOpMode {
     private ElapsedTime     runtime = new ElapsedTime();
 
     DcMotor frontLeft;
