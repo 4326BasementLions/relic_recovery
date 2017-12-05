@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 
-@TeleOp(name = "Full Tele Op", group = "Tele Op")
+@TeleOp(name = "Elevator Tele Op", group = "Tele Op")
 public class ElevatorTeleOp extends OpMode {
 
     DcMotor frontRight;
